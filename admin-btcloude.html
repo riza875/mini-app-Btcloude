@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BTcloude — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090d;--card:#0f1318;--card2:#151a22;
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,.15);--blue-border:rgba(59,130,246,.2);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.12);
+  --orange:#f97316;--orange-dim:rgba(249,115,22,.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.1);
+  --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.1);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);
+  --text:#f1f5f9;--muted:#64748b;--dim:#94a3b8;
+  --border:rgba(59,130,246,.15);--b2:rgba(255,255,255,.05)
+}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px;text-align:center}
+.login-logo{font-family:'Orbitron',sans-serif;font-size:1.3rem;color:var(--blue);letter-spacing:3px}
+.login-sub{color:var(--muted);font-size:.85rem}
+.inp{padding:13px 16px;background:var(--card2);border:1.5px solid var(--b2);border-radius:12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;width:100%;transition:border .2s}
+.inp:focus{border-color:var(--blue)}
+.btn-login{padding:14px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-family:'Orbitron',sans-serif;font-size:.8rem;letter-spacing:2px;cursor:pointer;font-weight:700;width:100%;transition:all .2s}
+.btn-login:hover{background:#2563eb;box-shadow:0 0 20px rgba(59,130,246,.4)}
+.err{color:var(--red);font-size:.82rem;min-height:18px}
+
+/* ADMIN */
+#adminScreen{display:none}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(7,9,13,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topbar-logo{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--blue);letter-spacing:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-badge{padding:4px 12px;background:var(--blue-dim);border:1px solid var(--border);border-radius:20px;font-size:.72rem;color:var(--blue);letter-spacing:1px}
+.btn-out{padding:6px 14px;background:var(--red-dim);border:1px solid rgba(239,68,68,.3);border-radius:20px;color:var(--red);font-size:.75rem;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px;transition:all .2s}
+.btn-out:hover{background:rgba(239,68,68,.2)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--b2);background:var(--card)}
+.tabs::-webkit-scrollbar{height:0}
+.tab{padding:9px 18px;background:transparent;border:1px solid transparent;border-radius:10px;color:var(--muted);font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tab:hover{color:var(--text);border-color:var(--b2)}
+.tab.active{background:var(--blue-dim);border-color:var(--border);color:var(--blue)}
+
+/* VIEWS */
+.view{display:none;padding:16px;flex-direction:column;gap:14px}
+.view.active{display:flex}
+
+/* LOADING */
+.loading-bar{height:3px;background:linear-gradient(90deg,var(--blue),#60a5fa,var(--blue));background-size:200%;animation:loadbar 1.2s linear infinite;border-radius:2px;margin-bottom:12px}
+@keyframes loadbar{0%{background-position:0%}100%{background-position:200%}}
+
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:600px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:var(--card);border:1px solid var(--b2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border)}
+.stat-icon{font-size:1.4rem;margin-bottom:2px}
+.stat-label{font-size:.7rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:700}
+.stat-val.blue{color:var(--blue)}
+.stat-val.green{color:var(--green)}
+.stat-val.orange{color:var(--orange)}
+.stat-val.purple{color:var(--purple)}
+.stat-sub{font-size:.75rem;color:var(--muted)}
+
+/* SECTION TITLE */
+.sec-title{font-family:'Orbitron',sans-serif;font-size:.78rem;letter-spacing:2px;color:var(--dim);margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--b2)}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--b2);border-radius:16px;padding:16px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--b2)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead tr{background:var(--card2)}
+th{padding:10px 14px;text-align:left;color:var(--muted);font-weight:600;font-size:.75rem;letter-spacing:.5px;white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--b2);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-name{font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-email{color:var(--muted);font-size:.78rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* BADGE */
+.badge{padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;white-space:nowrap}
+.badge-ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-pending{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.badge-reject{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-banned{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-kyc{background:rgba(29,155,240,.12);color:#1d9bf0;border:1px solid rgba(29,155,240,.3)}
+
+/* BUTTONS */
+.btn{padding:6px 14px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-blue{background:var(--blue-dim);color:var(--blue);border:1px solid var(--border)}
+.btn-blue:hover{background:var(--blue);color:#fff}
+.btn-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.btn-green:hover{background:var(--green);color:#fff}
+.btn-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.btn-orange:hover{background:var(--orange);color:#fff}
+
+/* SEARCH */
+.search-wrap{display:flex;gap:10px;align-items:center}
+.search-inp{flex:1;padding:10px 16px;background:var(--card2);border:1.5px solid var(--b2);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;outline:none;transition:border .2s}
+.search-inp:focus{border-color:var(--blue)}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:600px){.kpi-row{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--card);border-radius:14px;padding:14px;text-align:center;border:1px solid var(--b2)}
+.kpi-val{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;margin:4px 0 2px}
+.kpi-label{font-size:.7rem;color:var(--muted);letter-spacing:1px}
+
+/* CHART */
+.chart-box{background:var(--card);border:1px solid var(--b2);border-radius:16px;padding:16px}
+.chart-box canvas{max-height:260px}
+
+/* WITHDRAW ACTIONS */
+.wd-acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* DETAIL MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:999;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:#0f1318;border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;padding:24px}
+.modal h3{font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:2px;color:var(--blue);margin-bottom:16px}
+.modal-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--b2);font-size:.85rem;gap:10px}
+.modal-row:last-child{border-bottom:none}
+.modal-row span:first-child{color:var(--muted);flex-shrink:0}
+.modal-row span:last-child{text-align:right;word-break:break-all;font-weight:600}
+.modal-btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.modal-btns .btn{flex:1}
+
+/* NODE MODAL */
+.node-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.node-opt{padding:12px 10px;background:var(--card2);border:1.5px solid var(--b2);border-radius:12px;cursor:pointer;text-align:center;transition:all .2s}
+.node-opt:hover{border-color:var(--blue);background:var(--blue-dim)}
+.node-opt.selected{border-color:var(--blue);background:var(--blue-dim)}
+.node-opt strong{display:block;font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:1px;margin-bottom:3px}
+.node-opt small{font-size:.72rem;color:var(--muted)}
+.node-opt .node-icon{font-size:1.4rem;margin-bottom:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 24px;font-size:.88rem;opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}
+
+/* BUKTI TRANSFER */
+.bukti-card{background:var(--card);border:1px solid var(--b2);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s}
+.bukti-card:hover{border-color:var(--border)}
+.bukti-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.bukti-card-info{flex:1}
+.bukti-card-info strong{display:block;font-size:.9rem;font-weight:700}
+.bukti-card-info small{color:var(--muted);font-size:.76rem}
+.bukti-img-wrap{width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--b2);cursor:pointer;max-height:220px;display:flex;align-items:center;justify-content:center;background:#000}
+.bukti-img-wrap img{width:100%;max-height:220px;object-fit:contain;display:block}
+.bukti-acts{display:flex;gap:8px;flex-wrap:wrap}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);z-index:9990;display:none;align-items:center;justify-content:center;padding:16px}
+.lightbox.show{display:flex}
+.lightbox img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain}
+.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bukti-node-info{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card2);border-radius:8px;font-size:.8rem}
+.page-btn{padding:6px 14px;background:var(--card);border:1px solid var(--b2);border-radius:8px;color:var(--dim);cursor:pointer;font-size:.82rem;transition:all .2s}
+.page-btn:hover,.page-btn.active{background:var(--blue-dim);border-color:var(--border);color:var(--blue)}
+.page-info{color:var(--muted);font-size:.82rem}
+
+/* CHART BAR TABLE */
+.mini-bar{height:8px;background:var(--b2);border-radius:4px;overflow:hidden;min-width:80px}
+.mini-bar-fill{height:100%;border-radius:4px;transition:width .4s}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 16px;color:var(--muted);font-size:.88rem}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:18px;height:18px;border:2px solid var(--b2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ LOGIN ═══════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">⚡ BTCLOUDE</div>
+    <div class="login-sub">Admin Panel — Akses Terbatas</div>
+    <div style="font-size:3rem;margin:8px 0">🔐</div>
+    <input class="inp" type="password" id="inp-pin" placeholder="Masukkan Sandi Admin" autocomplete="off" maxlength="32" onkeydown="if(event.key==='Enter')doLogin()" style="text-align:center;letter-spacing:4px;font-size:1.1rem"/>
+    <div class="err" id="login-err"></div>
+    <button class="btn-login" onclick="doLogin()">MASUK</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ADMIN ════════════════════════════════ -->
+<div id="adminScreen">
+  <div class="topbar">
+    <div class="topbar-logo">⚡ BTCLOUDE ADMIN</div>
+    <div class="topbar-right">
+      <span class="topbar-badge">ADMIN</span>
+      <button class="btn-out" onclick="loadData()" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e;margin-right:4px" title="Refresh Data">↻</button>
+      <button class="btn-out" onclick="doLogout()">KELUAR</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('dashboard')">📊 DASHBOARD</div>
+    <div class="tab" onclick="switchTab('registrasi')">📅 REGISTRASI</div>
+    <div class="tab" onclick="switchTab('users')">👥 USERS</div>
+    <div class="tab" onclick="switchTab('withdraw')">💸 WITHDRAW</div>
+    <div class="tab" id="tab-kyc" onclick="switchTab('kyc')">🔒 KYC</div>
+    <div class="tab" id="tab-bukti" onclick="switchTab('bukti')">📸 BUKTI TRANSFER <span id="bukti-badge" style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:#ef4444;border-radius:20px;font-size:.65rem;color:#fff;padding:0 5px;margin-left:4px">0</span></div>
+  </div>
+
+  <!-- ─── DASHBOARD ─── -->
+  <div class="view active" id="view-dashboard">
+    <div class="loading-bar" id="dash-loading" style="display:none"></div>
+    <div class="stat-grid" id="stat-grid">
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">Total User</div><div class="stat-val blue" id="s-users">-</div></div>
+      <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-label">Daftar Hari Ini</div><div class="stat-val green" id="s-today">-</div></div>
+      <div class="stat-card"><div class="stat-icon">⛏</div><div class="stat-label">Total BTC Mined</div><div class="stat-val orange" id="s-btc">-</div></div>
+      <div class="stat-card"><div class="stat-icon">💸</div><div class="stat-label">Withdraw Pending</div><div class="stat-val purple" id="s-wd-pending">-</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Withdraw Selesai</div><div class="stat-val green" id="s-wd-done">-</div></div>
+      <div class="stat-card"><div class="stat-icon">🔒</div><div class="stat-label">User KYC</div><div class="stat-val blue" id="s-kyc">-</div></div>
+      <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-label">User Banned</div><div class="stat-val" style="color:var(--red)" id="s-banned">-</div></div>
+      <div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-label">Total Referral</div><div class="stat-val purple" id="s-ref">-</div></div>
+    </div>
+
+    <div class="sec-title">📋 User Terbaru</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Nama</th><th>Email</th><th>BTC Mined</th><th>Node</th><th>Bergabung</th></tr></thead>
+        <tbody id="recent-users-tbl"></tbody>
+      </table>
+    </div>
+
+    <div class="sec-title">💸 Withdraw Pending Terbaru</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Nama</th><th>Jumlah BTC</th><th>Jaringan</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="recent-wd-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── KYC VERIFIKASI ─── -->
+  <div class="view" id="view-kyc">
+    <div class="sec-title">🔒 VERIFIKASI KYC USER</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Nama</th><th>Email</th><th>KYC</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+        <tbody id="kyc-tbl"><tr><td colspan="5" style="text-align:center;color:var(--muted)">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── REGISTRASI ─── -->
+  <div class="view" id="view-registrasi">
+    <div class="sec-title">📅 REGISTRASI USER PER HARI</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">HARI INI</div><div class="kpi-val" id="r-today" style="color:var(--blue)">-</div></div>
+      <div class="kpi"><div class="kpi-label">7 HARI INI</div><div class="kpi-val" id="r-7d" style="color:var(--purple)">-</div></div>
+      <div class="kpi"><div class="kpi-label">30 HARI INI</div><div class="kpi-val" id="r-30d" style="color:var(--orange)">-</div></div>
+      <div class="kpi"><div class="kpi-label">RATA-RATA/HARI</div><div class="kpi-val" id="r-avg" style="color:var(--green)">-</div></div>
+    </div>
+
+    <div class="chart-box">
+      <div class="sec-title" style="margin-bottom:12px">📊 Grafik 30 Hari Terakhir</div>
+      <div style="position:relative;height:240px"><canvas id="chartReg"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:12px">📋 Detail Per Hari</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th style="text-align:center">Daftar</th><th>Bar</th></tr></thead>
+          <tbody id="reg-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── USERS ─── -->
+  <div class="view" id="view-users">
+    <div class="search-wrap">
+      <input class="search-inp" id="user-search" placeholder="🔍 Cari nama / email..." oninput="filterUsers()"/>
+      <button class="btn btn-blue" onclick="loadData()">↻ Refresh</button>
+    </div>
+    <div style="color:var(--muted);font-size:.8rem" id="user-count-lbl"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th><th>Email</th><th>BTC Mined</th><th>Node</th><th>KYC</th><th>Status</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbl"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="user-pagination"></div>
+  </div>
+
+  <!-- ─── WITHDRAW ─── -->
+  <div class="view" id="view-withdraw">
+    <div class="search-wrap">
+      <select class="search-inp" id="wd-filter" onchange="filterWithdraw()" style="max-width:180px">
+        <option value="all">Semua Status</option>
+        <option value="pending">Pending</option>
+        <option value="done">Selesai</option>
+        <option value="rejected">Ditolak</option>
+      </select>
+      <button class="btn btn-blue" onclick="loadData()">↻ Refresh</button>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">PENDING</div><div class="kpi-val" id="wd-kpi-pending" style="color:var(--yellow)">-</div></div>
+      <div class="kpi"><div class="kpi-label">SELESAI</div><div class="kpi-val" id="wd-kpi-done" style="color:var(--green)">-</div></div>
+      <div class="kpi"><div class="kpi-label">DITOLAK</div><div class="kpi-val" id="wd-kpi-rejected" style="color:var(--red)">-</div></div>
+      <div class="kpi"><div class="kpi-label">TOTAL BTC WD</div><div class="kpi-val" id="wd-kpi-total" style="color:var(--blue)">-</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Nama</th><th>Email</th><th>BTC</th><th>Jaringan</th><th>Alamat Wallet</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr>
+        </thead>
+        <tbody id="wd-tbl"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="wd-pagination"></div>
+  </div>
+  <!-- ─── BUKTI TRANSFER ─── -->
+  <div class="view" id="view-bukti">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div class="sec-title" style="border:none;margin:0;padding:0">📸 BUKTI TRANSFER NODE</div>
+      <div style="display:flex;gap:8px">
+        <select class="search-inp" id="bukti-filter" onchange="filterBukti()" style="max-width:170px;padding:8px 12px;font-size:.82rem">
+          <option value="all">Semua</option>
+          <option value="pending">⏳ Menunggu</option>
+          <option value="approved">✅ Disetujui</option>
+          <option value="rejected">❌ Ditolak</option>
+        </select>
+        <button class="btn btn-blue" onclick="loadData()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">MENUNGGU</div><div class="kpi-val" id="bk-kpi-pending" style="color:var(--yellow)">-</div></div>
+      <div class="kpi"><div class="kpi-label">DISETUJUI</div><div class="kpi-val" id="bk-kpi-approved" style="color:var(--green)">-</div></div>
+      <div class="kpi"><div class="kpi-label">DITOLAK</div><div class="kpi-val" id="bk-kpi-rejected" style="color:var(--red)">-</div></div>
+      <div class="kpi"><div class="kpi-label">TOTAL MASUK</div><div class="kpi-val" id="bk-kpi-total" style="color:var(--blue)">-</div></div>
+    </div>
+    <div id="bukti-list" style="display:flex;flex-direction:column;gap:12px">
+      <div class="empty">Memuat data bukti transfer...</div>
+    </div>
+    <div class="pagination" id="bukti-pagination"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX FOTO BUKTI -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Bukti Transfer"/>
+</div>
+
+<!-- MODAL DETAIL USER -->
+<div class="modal-bg" id="modal-user">
+  <div class="modal">
+    <h3>👤 DETAIL USER</h3>
+    <div id="modal-user-body"></div>
+    <div class="modal-btns" id="modal-user-btns"></div>
+    <button class="btn btn-blue" style="width:100%;margin-top:8px" onclick="closeModal('modal-user')">Tutup</button>
+  </div>
+</div>
+
+<!-- MODAL DETAIL WITHDRAW -->
+<div class="modal-bg" id="modal-wd">
+  <div class="modal">
+    <h3>💸 DETAIL WITHDRAW</h3>
+    <div id="modal-wd-body"></div>
+    <div class="modal-btns" id="modal-wd-btns"></div>
+    <button class="btn btn-blue" style="width:100%;margin-top:8px" onclick="closeModal('modal-wd')">Tutup</button>
+  </div>
+</div>
+
+<!-- MODAL NODE UPGRADE ADMIN -->
+<div class="modal-bg" id="modal-node">
+  <div class="modal">
+    <h3>⚡ KELOLA NODE USER</h3>
+    <div id="modal-node-user-info" style="background:var(--card2);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:.85rem">
+      <div style="font-weight:700;font-size:.95rem" id="modal-node-uname">-</div>
+      <div style="color:var(--muted);font-size:.78rem" id="modal-node-uemail">-</div>
+      <div style="margin-top:6px;font-size:.8rem">Node saat ini: <span id="modal-node-current" style="font-weight:700"></span></div>
+    </div>
+
+    <div style="font-size:.78rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Pilih Node Baru:</div>
+    <div class="node-select-grid">
+      <div class="node-opt" id="nopt-1" onclick="selectNodeOpt(1)">
+        <div class="node-icon">🔵</div>
+        <strong>BASIC</strong>
+        <small>1x • Gratis</small>
+      </div>
+      <div class="node-opt" id="nopt-2" onclick="selectNodeOpt(2)">
+        <div class="node-icon">🥈</div>
+        <strong>SILVER</strong>
+        <small>2x • $1</small>
+      </div>
+      <div class="node-opt" id="nopt-3" onclick="selectNodeOpt(3)">
+        <div class="node-icon">🥇</div>
+        <strong>GOLD</strong>
+        <small>4x • $2</small>
+      </div>
+      <div class="node-opt" id="nopt-4" onclick="selectNodeOpt(4)">
+        <div class="node-icon">💎</div>
+        <strong>PLATINUM</strong>
+        <small>8x • $3</small>
+      </div>
+      <div class="node-opt" id="nopt-5" onclick="selectNodeOpt(5)">
+        <div class="node-icon">👑</div>
+        <strong>DIAMOND</strong>
+        <small>16x • $4</small>
+      </div>
+    </div>
+
+    <div class="modal-btns" style="margin-top:4px">
+      <button class="btn btn-red" style="flex:1" onclick="resetNodeToBasic()">🔄 Reset ke Basic</button>
+      <button class="btn btn-green" style="flex:1" id="btn-apply-node" onclick="applyNodeChange()" disabled>✅ Terapkan</button>
+    </div>
+    <button class="btn btn-blue" style="width:100%;margin-top:8px" onclick="closeModal('modal-node')">Tutup</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<script type="module">
+// ═══════════════════════════════════════════════════
+//  ADMIN PANEL — Firebase Firestore
+// ═══════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteField, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGd5JCN0tbiWp-dAXttlctFpc3p8exR1U",
+  authDomain: "mini-app-btcloude.firebaseapp.com",
+  projectId: "mini-app-btcloude",
+  storageBucket: "mini-app-btcloude.firebasestorage.app",
+  messagingSenderId: "55335549208",
+  appId: "1:55335549208:web:7badbb0560d1c03429c66d",
+  measurementId: "G-4BTDG9GN9R"
+};
+
+const _fbApp = initializeApp(firebaseConfig);
+const _db = getFirestore(_fbApp);
+
+const ADMIN_PIN = "admin123"; // Ganti sandi ini
+
+let allUsers = [], allWithdraw = [], allOrders = [];
+let userPage = 1, wdPage = 1, buktiPage = 1;
+const PER_PAGE = 20;
+let regChart = null;
+
+// ── AUTH ─────────────────────────────────────────
+function checkSession() {
+  if (sessionStorage.getItem('btcloude_admin') === 'ok') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminScreen').style.display = 'none';
+  }
+}
+checkSession();
+
+window.doLogin = function() {
+  const pin   = document.getElementById('inp-pin').value;
+  const errEl = document.getElementById('login-err');
+  errEl.textContent = '';
+  if (!pin) { errEl.textContent = 'Masukkan sandi admin'; return; }
+  if (pin === ADMIN_PIN) {
+    sessionStorage.setItem('btcloude_admin', 'ok');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    loadData();
+  } else {
+    errEl.textContent = '❌ Sandi salah!';
+    document.getElementById('inp-pin').value = '';
+  }
+};
+
+window.doLogout = function() {
+  sessionStorage.removeItem('btcloude_admin');
+  document.getElementById('adminScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('inp-pin').value = '';
+};
+
+// ── LOAD DATA dari Firestore ───────────────────
+window.loadData = async function() {
+  showLoading(true);
+  try {
+    // Baca semua user dari collection "users"
+    const usersSnap = await getDocs(collection(_db, "users"));
+    allUsers = usersSnap.docs.map(d => ({ _id: d.id, uid: d.id, ...d.data() }));
+
+    // Kumpulkan semua withdraw history dari semua user
+    allWithdraw = [];
+    allUsers.forEach(u => {
+      const wdHistory = u.withdrawHistory || [];
+      wdHistory.forEach((w, i) => {
+        allWithdraw.push({
+          _id: u.uid + '_wd_' + i,
+          uid: u.uid,
+          name: u.name || '-',
+          email: u.email || '-',
+          ...w
+        });
+      });
+    });
+
+    // Baca semua orders (bukti transfer) dari collection "orders"
+    const ordersSnap = await getDocs(collection(_db, "orders"));
+    allOrders = ordersSnap.docs.map(d => ({ _id: d.id, ...d.data() }));
+
+    renderDashboard();
+    renderRegistrasi();
+    renderUsers();
+    renderWithdraw();
+    renderBukti();
+    renderKyc();
+    toast('✅ Data dimuat — ' + allUsers.length + ' user');
+  } catch(e) {
+    console.error('loadData error:', e);
+    toast('❌ Gagal memuat data: ' + e.message);
+  }
+  showLoading(false);
+};
+
+function showLoading(v) {
+  document.getElementById('dash-loading').style.display = v ? 'block' : 'none';
+}
+
+// ── TIMESTAMP HELPER ──────────────────────────────
+function toMs(u) {
+  if (u.joinedAt) {
+    if (typeof u.joinedAt.toMillis === 'function') return u.joinedAt.toMillis();
+    if (u.joinedAt.seconds) return u.joinedAt.seconds * 1000;
+    if (typeof u.joinedAt === 'number') return u.joinedAt;
+  }
+  if (u.createdAt) {
+    if (typeof u.createdAt.toMillis === 'function') return u.createdAt.toMillis();
+    if (u.createdAt.seconds) return u.createdAt.seconds * 1000;
+    if (typeof u.createdAt === 'number') return u.createdAt;
+  }
+  return null;
+}
+
+function fmtDate(ts) {
+  if (!ts) return '-';
+  return new Date(ts).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtTs(obj) {
+  if (!obj) return '-';
+  if (typeof obj.toMillis === 'function') return fmtDate(obj.toMillis());
+  if (obj.seconds) return fmtDate(obj.seconds * 1000);
+  if (typeof obj === 'number') return fmtDate(obj);
+  return '-';
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+function renderDashboard() {
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const todayUsers = allUsers.filter(u => { const ts = toMs(u); return ts && ts >= today; }).length;
+  const totalBtc   = allUsers.reduce((s, u) => s + (u.btcMined || 0), 0);
+  const kycUsers   = allUsers.filter(u => u.kyc && (u.kyc === 'verified' || u.kyc === true || (u.kyc.status === 'approved'))).length;
+  const banned     = allUsers.filter(u => u.banned === true).length;
+  const totalRef   = allUsers.reduce((s, u) => s + (u.referralCount || 0), 0);
+  const wdPending  = allWithdraw.filter(w => w.status === 'pending').length;
+  const wdDone     = allWithdraw.filter(w => w.status === 'done').length;
+
+  document.getElementById('s-users').textContent      = allUsers.length;
+  document.getElementById('s-today').textContent      = todayUsers;
+  document.getElementById('s-btc').textContent        = totalBtc.toFixed(6);
+  document.getElementById('s-wd-pending').textContent = wdPending;
+  document.getElementById('s-wd-done').textContent    = wdDone;
+  document.getElementById('s-kyc').textContent        = kycUsers;
+  document.getElementById('s-banned').textContent     = banned;
+  document.getElementById('s-ref').textContent        = totalRef;
+
+  const sorted = [...allUsers].sort((a, b) => (toMs(b)||0) - (toMs(a)||0)).slice(0, 10);
+  document.getElementById('recent-users-tbl').innerHTML = sorted.map(u => `
+    <tr>
+      <td class="td-name">${u.name||'-'}</td>
+      <td class="td-email">${u.email||'-'}</td>
+      <td style="color:var(--orange);font-family:'Orbitron',sans-serif;font-size:.78rem">${(u.btcMined||0).toFixed(8)}</td>
+      <td>${nodeLabel(u.nodeLevel)}</td>
+      <td>${fmtTs(u.joinedAt || u.createdAt)}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Belum ada user</td></tr>';
+
+  const pend = allWithdraw.filter(w => w.status === 'pending').slice(0, 8);
+  document.getElementById('recent-wd-tbl').innerHTML = pend.map(w => `
+    <tr>
+      <td class="td-name">${w.name||'-'}</td>
+      <td style="color:var(--orange);font-family:'Orbitron',sans-serif;font-size:.78rem">${(w.amount||0).toFixed(8)} BTC</td>
+      <td><span class="badge badge-pending">${w.network||'-'}</span></td>
+      <td><span class="badge badge-pending">⏳ Pending</span></td>
+      <td>
+        <div class="wd-acts">
+          <button class="btn btn-green" onclick="approveWd('${w._id}')">✅ ACC</button>
+          <button class="btn btn-red" onclick="rejectWd('${w._id}')">❌ Tolak</button>
+        </div>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Tidak ada withdraw pending</td></tr>';
+}
+
+function nodeLabel(lvl) {
+  const map = {1:'🔵 Basic',2:'🥈 Silver',3:'🥇 Gold',4:'💎 Platinum',5:'👑 Diamond'};
+  return `<span style="font-size:.78rem">${map[lvl]||'🔵 Basic'}</span>`;
+}
+
+// ── REGISTRASI HARIAN ─────────────────────────────
+function renderRegistrasi() {
+  const now  = new Date();
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    days.push(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i));
+  }
+  const counts = days.map(day => {
+    const start = day.getTime();
+    const end   = start + 86400000;
+    return allUsers.filter(u => { const ts = toMs(u); return ts && ts >= start && ts < end; }).length;
+  });
+
+  const todayCnt = counts[29];
+  const last7    = counts.slice(23).reduce((a,b) => a+b, 0);
+  const last30   = counts.reduce((a,b) => a+b, 0);
+  const avg      = (last30 / 30).toFixed(1);
+  document.getElementById('r-today').textContent = todayCnt;
+  document.getElementById('r-7d').textContent    = last7;
+  document.getElementById('r-30d').textContent   = last30;
+  document.getElementById('r-avg').textContent   = avg;
+
+  const labels = days.map(d => d.toLocaleDateString('id-ID', { day:'2-digit', month:'short' }));
+  if (regChart) { regChart.destroy(); regChart = null; }
+  const ctx = document.getElementById('chartReg');
+  if (ctx) {
+    regChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'User Baru',
+          data: counts,
+          backgroundColor: counts.map((_, i) => i === 29 ? 'rgba(249,115,22,.85)' : 'rgba(59,130,246,.25)'),
+          borderColor:     counts.map((_, i) => i === 29 ? '#f97316' : '#3b82f6'),
+          borderWidth: 1.5, borderRadius: 5, borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${c.raw} user baru` } }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+          y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#64748b', stepSize: 1 } }
+        }
+      }
+    });
+  }
+
+  const max = Math.max(...counts, 1);
+  document.getElementById('reg-tbl').innerHTML = days.slice().reverse().map((d, i) => {
+    const c = counts[29 - i];
+    const pct = Math.round((c / max) * 100);
+    return `<tr>
+      <td>${d.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</td>
+      <td style="text-align:center;font-weight:700;color:${c > 0 ? 'var(--blue)' : 'var(--muted)'}">${c}</td>
+      <td><div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:${c===max?'var(--orange)':'var(--blue)'}"></div></div></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty">Belum ada data</td></tr>';
+}
+
+// ── USERS ─────────────────────────────────────────
+let filteredUsers = [];
+window.filterUsers = function() {
+  const q = document.getElementById('user-search').value.toLowerCase();
+  filteredUsers = allUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q)
+  );
+  userPage = 1;
+  renderUsersPage();
+};
+
+function renderUsers() {
+  filteredUsers = [...allUsers];
+  userPage = 1;
+  renderUsersPage();
+}
+
+function renderUsersPage() {
+  const total = filteredUsers.length;
+  document.getElementById('user-count-lbl').textContent = `${total} user ditemukan`;
+  const start = (userPage-1) * PER_PAGE;
+  const slice = filteredUsers.slice(start, start + PER_PAGE);
+
+  document.getElementById('users-tbl').innerHTML = slice.map(u => {
+    const kyc = u.kyc;
+    const isKyc = kyc && (kyc === 'verified' || kyc === true || (kyc.status === 'approved'));
+    const kycBadge = isKyc
+      ? '<span class="badge badge-kyc">✓ KYC</span>'
+      : '<span style="color:var(--muted);font-size:.78rem">—</span>';
+    const statusBadge = u.banned
+      ? '<span class="badge badge-banned">🚫 Banned</span>'
+      : '<span class="badge badge-ok">✅ Aktif</span>';
+    const tgInfo = u.telegramUsername ? `@${u.telegramUsername}` : (u.telegramId ? `ID: ${u.telegramId}` : '—');
+    return `<tr>
+      <td class="td-name">${u.name||'-'}</td>
+      <td class="td-email" style="font-size:.78rem;color:var(--blue)">${tgInfo}</td>
+      <td style="color:var(--orange);font-family:'Orbitron',sans-serif;font-size:.78rem">${(u.btcMined||0).toFixed(8)}</td>
+      <td>${nodeLabel(u.nodeLevel)}</td>
+      <td>${kycBadge}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-blue" onclick="openUserModal('${u._id}')">👁 Detail</button>
+          <button class="btn btn-orange" onclick="openNodeModal('${u._id}')">⚡ Node</button>
+          <button class="btn ${u.banned?'btn-green':'btn-red'}" onclick="toggleBan('${u._id}')">${u.banned?'🔓 Unban':'🚫 Ban'}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">Tidak ada user</td></tr>';
+  renderPagination('user-pagination', total, userPage, (p) => { userPage = p; renderUsersPage(); });
+}
+
+// ── WITHDRAW ──────────────────────────────────────
+let filteredWd = [];
+window.filterWithdraw = function() {
+  const f = document.getElementById('wd-filter').value;
+  filteredWd = f === 'all' ? [...allWithdraw] : allWithdraw.filter(w => w.status === f);
+  wdPage = 1;
+  renderWdPage();
+};
+
+function renderWithdraw() {
+  filteredWd = [...allWithdraw];
+  wdPage = 1;
+  updateWdKpi();
+  renderWdPage();
+}
+
+function updateWdKpi() {
+  document.getElementById('wd-kpi-pending').textContent  = allWithdraw.filter(w=>w.status==='pending').length;
+  document.getElementById('wd-kpi-done').textContent     = allWithdraw.filter(w=>w.status==='done').length;
+  document.getElementById('wd-kpi-rejected').textContent = allWithdraw.filter(w=>w.status==='rejected').length;
+  const total = allWithdraw.filter(w=>w.status==='done').reduce((s,w)=>s+(w.amount||0),0);
+  document.getElementById('wd-kpi-total').textContent    = total.toFixed(8);
+}
+
+function renderWdPage() {
+  const total = filteredWd.length;
+  const start = (wdPage-1) * PER_PAGE;
+  const slice = filteredWd.slice(start, start + PER_PAGE);
+  document.getElementById('wd-tbl').innerHTML = slice.map(w => {
+    const bc = w.status==='done'?'badge-ok':w.status==='rejected'?'badge-reject':'badge-pending';
+    const bt = w.status==='done'?'✅ Selesai':w.status==='rejected'?'❌ Ditolak':'⏳ Pending';
+    const dateStr = w.date || fmtDate(w.createdAt) || '-';
+    return `<tr>
+      <td class="td-name">${w.name||'-'}</td>
+      <td class="td-email">${w.email||'-'}</td>
+      <td style="color:var(--orange);font-family:'Orbitron',sans-serif;font-size:.78rem">${(w.amount||0).toFixed(8)}</td>
+      <td><span class="badge badge-pending">${w.network||'-'}</span></td>
+      <td style="font-size:.78rem;color:var(--muted);word-break:break-all;max-width:140px">${w.walletAddress||w.account||'-'}</td>
+      <td><span class="badge ${bc}">${bt}</span></td>
+      <td style="font-size:.78rem">${dateStr}</td>
+      <td>
+        <div class="wd-acts">
+          ${w.status==='pending'?`
+            <button class="btn btn-green" onclick="approveWd('${w._id}')">✅ ACC</button>
+            <button class="btn btn-red" onclick="rejectWd('${w._id}')">❌ Tolak</button>
+          `:`<button class="btn btn-blue" onclick="openWdModal('${w._id}')">👁 Detail</button>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" class="empty">Tidak ada data withdraw</td></tr>';
+  renderPagination('wd-pagination', total, wdPage, (p) => { wdPage = p; renderWdPage(); });
+}
+
+window.approveWd = async function(id) {
+  const w = allWithdraw.find(x => x._id === id);
+  if (!w) return;
+  if (!confirm(`Setujui withdraw ${(w.amount||0).toFixed(8)} BTC untuk ${w.name}?`)) return;
+  w.status = 'done';
+  await _saveWithdrawChanges(w.uid);
+  renderWithdraw();
+  renderDashboard();
+  toast('✅ Withdraw disetujui');
+};
+
+window.rejectWd = async function(id) {
+  const w = allWithdraw.find(x => x._id === id);
+  if (!w) return;
+  if (!confirm(`Tolak withdraw dari ${w.name}?`)) return;
+  // Kembalikan BTC ke user di Firestore
+  const user = allUsers.find(u => u.uid === w.uid);
+  if (user) {
+    user.btcMined = (user.btcMined || 0) + (w.amount || 0);
+    try { await updateDoc(doc(_db, "users", w.uid), { btcMined: user.btcMined }); } catch(e) {}
+  }
+  w.status = 'rejected';
+  await _saveWithdrawChanges(w.uid);
+  renderWithdraw();
+  renderDashboard();
+  toast('❌ Withdraw ditolak & BTC dikembalikan');
+};
+
+async function _saveWithdrawChanges(uid) {
+  try {
+    const user = allUsers.find(u => u.uid === uid);
+    if (!user) return;
+    const wdHistory = allWithdraw
+      .filter(w => w.uid === uid)
+      .map(w => ({
+        amount: w.amount, network: w.network, walletAddress: w.walletAddress,
+        walletName: w.walletName, status: w.status, date: w.date
+      }));
+    await updateDoc(doc(_db, "users", uid), { withdrawHistory: wdHistory });
+  } catch(e) { console.error("_saveWithdrawChanges:", e); }
+}
+
+// ── BUKTI TRANSFER ────────────────────────────────
+let filteredBukti = [];
+window.filterBukti = function() {
+  const f = document.getElementById('bukti-filter').value;
+  filteredBukti = f === 'all' ? [...allOrders] : allOrders.filter(o => o.status === f);
+  buktiPage = 1;
+  renderBuktiPage();
+};
+
+function renderBukti() {
+  filteredBukti = [...allOrders];
+  buktiPage = 1;
+  updateBuktiKpi();
+  renderBuktiPage();
+  const badge = document.getElementById('bukti-badge');
+  if (badge) badge.textContent = allOrders.filter(o => o.status === 'pending').length;
+}
+
+function updateBuktiKpi() {
+  document.getElementById('bk-kpi-pending').textContent  = allOrders.filter(o=>o.status==='pending').length;
+  document.getElementById('bk-kpi-approved').textContent = allOrders.filter(o=>o.status==='approved').length;
+  document.getElementById('bk-kpi-rejected').textContent = allOrders.filter(o=>o.status==='rejected').length;
+  document.getElementById('bk-kpi-total').textContent    = allOrders.length;
+}
+
+function renderBuktiPage() {
+  const nodeMap = {1:'🔵 Basic',2:'🥈 Silver',3:'🥇 Gold',4:'💎 Platinum',5:'👑 Diamond'};
+  const total = filteredBukti.length;
+  const start = (buktiPage-1) * PER_PAGE;
+  const slice = filteredBukti.slice(start, start + PER_PAGE);
+  const list = document.getElementById('bukti-list');
+  if (!list) return;
+  if (!slice.length) { list.innerHTML = '<div class="empty">Tidak ada bukti transfer</div>'; return; }
+  list.innerHTML = slice.map(o => {
+    const bc = o.status==='approved'?'badge-ok':o.status==='rejected'?'badge-reject':'badge-pending';
+    const bt = o.status==='approved'?'✅ Disetujui':o.status==='rejected'?'❌ Ditolak':'⏳ Menunggu';
+    const dateStr = o.createdAt ? fmtDate(o.createdAt) : '-';
+    return `<div class="bukti-card">
+      <div class="bukti-card-head">
+        <div class="bukti-card-info">
+          <strong>${o.name||'-'}</strong>
+          <small>${o.email||'-'}</small>
+        </div>
+        <span class="badge ${bc}">${bt}</span>
+      </div>
+      <div class="bukti-node-info">
+        <span>${nodeMap[o.nodeLevel]||'?'}</span>
+        <span style="color:var(--orange);font-family:'Orbitron',sans-serif;font-size:.78rem">${o.priceUSDT||'?'} USDT</span>
+        <span style="color:var(--muted);font-size:.78rem;margin-left:auto">${dateStr}</span>
+      </div>
+      ${o.buktiPhoto ? `
+      <div class="bukti-img-wrap" onclick="openLightbox('${o._id}')">
+        <img src="${o.buktiPhoto}" alt="Bukti Transfer"/>
+      </div>` : '<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:8px">Tidak ada foto bukti</div>'}
+      ${o.status === 'pending' ? `
+      <div class="bukti-acts">
+        <button class="btn btn-green" onclick="approveBukti('${o._id}')">✅ Setujui & Aktifkan Node</button>
+        <button class="btn btn-red" onclick="rejectBukti('${o._id}')">❌ Tolak</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  renderPagination('bukti-pagination', total, buktiPage, (p) => { buktiPage = p; renderBuktiPage(); });
+}
+
+window.openLightbox = function(orderId) {
+  const o = allOrders.find(x => x._id === orderId);
+  if (!o || !o.buktiPhoto) return;
+  document.getElementById('lightbox-img').src = o.buktiPhoto;
+  document.getElementById('lightbox').classList.add('show');
+};
+
+window.closeLightbox = function() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.getElementById('lightbox-img').src = '';
+};
+
+window.approveBukti = async function(orderId) {
+  const o = allOrders.find(x => x._id === orderId);
+  if (!o) return;
+  const nodeMap = {1:'Basic',2:'Silver',3:'Gold',4:'Platinum',5:'Diamond'};
+  const nodeName = nodeMap[o.nodeLevel] || 'Unknown';
+  if (!confirm(`Setujui bukti transfer & aktifkan ${nodeName} Node untuk ${o.name}?`)) return;
+  o.status = 'approved';
+  await _saveOrderChanges(orderId, { status: 'approved' });
+  // Aktifkan node user di Firestore
+  const user = allUsers.find(u => u.uid === o.uid);
+  if (user) {
+    user.nodeLevel = o.nodeLevel;
+    try { await updateDoc(doc(_db, "users", o.uid), { nodeLevel: o.nodeLevel }); } catch(e) {}
+  }
+  renderBukti();
+  renderUsers();
+  renderDashboard();
+  toast(`✅ ${nodeName} Node diaktifkan untuk ${o.name}`);
+};
+
+window.rejectBukti = async function(orderId) {
+  const o = allOrders.find(x => x._id === orderId);
+  if (!o) return;
+  if (!confirm(`Tolak bukti transfer dari ${o.name}?`)) return;
+  o.status = 'rejected';
+  await _saveOrderChanges(orderId, { status: 'rejected' });
+  renderBukti();
+  toast('❌ Bukti transfer ditolak');
+};
+
+async function _saveOrderChanges(orderId, fields) {
+  try {
+    await updateDoc(doc(_db, "orders", orderId), fields);
+  } catch(e) { console.error("_saveOrderChanges:", e); }
+}
+
+// ── USER MODAL ────────────────────────────────────
+window.openUserModal = function(uid) {
+  const u = allUsers.find(x => x._id === uid);
+  if (!u) return;
+  const isKyc = u.kyc && (u.kyc === 'verified' || u.kyc === true || (u.kyc && u.kyc.status === 'approved'));
+  document.getElementById('modal-user-body').innerHTML = `
+    <div class="modal-row"><span>Nama</span><span>${u.name||'-'}</span></div>
+    <div class="modal-row"><span>Telegram</span><span style="color:var(--blue)">${u.telegramUsername ? '@'+u.telegramUsername : (u.telegramId || '-')}</span></div>
+    <div class="modal-row"><span>Telegram ID</span><span style="font-size:.8rem">${u.telegramId||'-'}</span></div>
+    <div class="modal-row"><span>Email</span><span>${u.email||'-'}</span></div>
+    <div class="modal-row"><span>UID</span><span style="font-size:.75rem">${u.uid||u._id||'-'}</span></div>
+    <div class="modal-row"><span>BTC Mined</span><span style="color:var(--orange)">${(u.btcMined||0).toFixed(8)} BTC</span></div>
+    <div class="modal-row"><span>Node Level</span><span>${nodeLabel(u.nodeLevel)}</span></div>
+    <div class="modal-row"><span>KYC</span><span>${isKyc ? '✓ Terverifikasi' : 'Belum'}</span></div>
+    <div class="modal-row"><span>Status</span><span>${u.banned ? '🚫 Banned' : '✅ Aktif'}</span></div>
+    <div class="modal-row"><span>Referral Code</span><span>${u.referralCode||'-'}</span></div>
+    <div class="modal-row"><span>Total Referral</span><span>${u.referralCount||0} orang</span></div>
+  `;
+  document.getElementById('modal-user-btns').innerHTML = `
+    <button class="btn ${u.banned?'btn-green':'btn-red'}" onclick="toggleBan('${uid}');closeModal('modal-user')">${u.banned?'🔓 Unban':'🚫 Ban User'}</button>
+    <button class="btn btn-orange" onclick="closeModal('modal-user');openNodeModal('${uid}')">⚡ Kelola Node</button>
+  `;
+  document.getElementById('modal-user').classList.add('show');
+};
+
+window.openWdModal = function(id) {
+  const w = allWithdraw.find(x => x._id === id);
+  if (!w) return;
+  document.getElementById('modal-wd-body').innerHTML = `
+    <div class="modal-row"><span>Nama</span><span>${w.name||'-'}</span></div>
+    <div class="modal-row"><span>Jumlah</span><span style="color:var(--orange)">${(w.amount||0).toFixed(8)} BTC</span></div>
+    <div class="modal-row"><span>Jaringan</span><span>${w.network||'-'}</span></div>
+    <div class="modal-row"><span>Alamat Wallet</span><span style="font-size:.75rem;word-break:break-all">${w.walletAddress||w.account||'-'}</span></div>
+    <div class="modal-row"><span>Nama Pemilik</span><span>${w.walletName||'-'}</span></div>
+    <div class="modal-row"><span>Status</span><span>${w.status||'-'}</span></div>
+    <div class="modal-row"><span>Tanggal</span><span>${w.date||'-'}</span></div>
+  `;
+  document.getElementById('modal-wd-btns').innerHTML = w.status === 'pending' ? `
+    <button class="btn btn-green" onclick="approveWd('${id}');closeModal('modal-wd')">✅ Setujui</button>
+    <button class="btn btn-red" onclick="rejectWd('${id}');closeModal('modal-wd')">❌ Tolak</button>
+  ` : '';
+  document.getElementById('modal-wd').classList.add('show');
+};
+
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('show');
+};
+
+// ── NODE MODAL ────────────────────────────────────
+let _nodeModalUid = null;
+let _selectedNodeOpt = null;
+
+window.openNodeModal = function(uid) {
+  const u = allUsers.find(x => x._id === uid);
+  if (!u) return;
+  _nodeModalUid = uid;
+  _selectedNodeOpt = null;
+  document.getElementById('modal-node-uname').textContent = u.name || '-';
+  document.getElementById('modal-node-uemail').textContent = u.email || '-';
+  document.getElementById('modal-node-current').textContent = nodeLabel(u.nodeLevel).replace(/<[^>]+>/g, '');
+  [1,2,3,4,5].forEach(i => document.getElementById('nopt-'+i).classList.remove('selected'));
+  document.getElementById('btn-apply-node').disabled = true;
+  document.getElementById('modal-node').classList.add('show');
+};
+
+window.selectNodeOpt = function(level) {
+  _selectedNodeOpt = level;
+  [1,2,3,4,5].forEach(i => document.getElementById('nopt-'+i).classList.toggle('selected', i===level));
+  document.getElementById('btn-apply-node').disabled = false;
+};
+
+window.applyNodeChange = async function() {
+  if (!_nodeModalUid || !_selectedNodeOpt) return;
+  const u = allUsers.find(x => x._id === _nodeModalUid);
+  if (!u) return;
+  u.nodeLevel = _selectedNodeOpt;
+  try { await updateDoc(doc(_db, "users", u.uid), { nodeLevel: _selectedNodeOpt }); } catch(e) {}
+  closeModal('modal-node');
+  renderUsers();
+  renderDashboard();
+  toast(`✅ Node user ${u.name} diubah ke Level ${_selectedNodeOpt}`);
+};
+
+window.resetNodeToBasic = function() {
+  if (!_nodeModalUid) return;
+  selectNodeOpt(1);
+  applyNodeChange();
+};
+
+window.toggleBan = async function(uid) {
+  const u = allUsers.find(x => x._id === uid);
+  if (!u) return;
+  const action = u.banned ? 'unban' : 'ban';
+  if (!confirm(`${action} user ${u.name}?`)) return;
+  u.banned = !u.banned;
+  try { await updateDoc(doc(_db, "users", u.uid), { banned: u.banned }); } catch(e) {}
+  renderUsers();
+  renderDashboard();
+  toast(u.banned ? `🚫 User ${u.name} di-ban` : `✅ User ${u.name} di-unban`);
+};
+
+// ── KYC ──────────────────────────────────────────
+function renderKyc() {
+  const tbody = document.getElementById('kyc-tbl');
+  if (!tbody) return;
+  const kycUsers = allUsers.filter(u => {
+    const k = u.kyc;
+    return k && (k === 'verified' || k === true || k === 'pending' || (k.status && (k.status === 'approved' || k.status === 'pending')));
+  });
+  if (!kycUsers.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">Belum ada user KYC</td></tr>';
+    return;
+  }
+  tbody.innerHTML = kycUsers.map(u => {
+    const k = u.kyc;
+    const isVerified = k === 'verified' || k === true || (k && k.status === 'approved');
+    const statusBadge = isVerified
+      ? '<span class="badge badge-kyc">✓ Terverifikasi</span>'
+      : '<span style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.3);padding:3px 8px;border-radius:20px;font-size:.72rem">⏳ Pending</span>';
+    return `<tr>
+      <td>${u.name||'-'}</td>
+      <td style="font-size:.8rem">${u.email||'-'}</td>
+      <td>${statusBadge}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fmtTs(u.joinedAt || u.createdAt)}</td>
+      <td style="display:flex;gap:6px">
+        ${!isVerified ? `<button class="btn btn-green" onclick="approveKyc('${u._id}')">✓ Setujui</button>` : ''}
+        <button class="btn btn-red" onclick="revokeKyc('${u._id}')">✗ Cabut</button>
+      </td>
+    </tr>`;
+  }).join('');
+  const kycVerified = allUsers.filter(u => { const k=u.kyc; return k&&(k==='verified'||k===true||(k.status==='approved')); }).length;
+  localStorage.setItem('kyc_last_count', kycVerified.toString());
+}
+
+window.filterKycPending = function() { renderKyc(); };
+
+window.approveKyc = async function(uid) {
+  if (!confirm('Setujui KYC user ini?')) return;
+  const u = allUsers.find(x => x._id === uid);
+  if (!u) return;
+  u.kyc = 'verified';
+  try { await updateDoc(doc(_db, "users", uid), { kyc: { status: 'approved' } }); } catch(e) {}
+  renderKyc();
+  renderUsers();
+  toast('✅ KYC user disetujui');
+};
+
+window.revokeKyc = async function(uid) {
+  if (!confirm('Cabut verifikasi KYC user ini?')) return;
+  const u = allUsers.find(x => x._id === uid);
+  if (!u) return;
+  u.kyc = null;
+  try { await updateDoc(doc(_db, "users", uid), { kyc: null }); } catch(e) {}
+  renderKyc();
+  renderUsers();
+  toast('⚠️ KYC user dicabut');
+};
+
+// ── PAGINATION & TABS ─────────────────────────────
+function renderPagination(elId, total, page, onPage) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const totalPages = Math.ceil(total / PER_PAGE);
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="(${onPage.toString()})(${page-1})" ${page<=1?'disabled':''}>← Prev</button>`;
+  html += `<span class="page-info">Hal ${page} / ${totalPages}</span>`;
+  html += `<button class="page-btn" onclick="(${onPage.toString()})(${page+1})" ${page>=totalPages?'disabled':''}>Next →</button>`;
+  el.innerHTML = html;
+}
+
+window.switchTab = function(tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  const tabs = ['dashboard','registrasi','users','withdraw','kyc','bukti'];
+  const idx = tabs.indexOf(tab);
+  const tabEls = document.querySelectorAll('.tab');
+  if (tabEls[idx]) tabEls[idx].classList.add('active');
+};
+
+window.toast = function(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+};
+
+// Auto-refresh setiap 60 detik
+setInterval(() => { if(document.getElementById('adminScreen').style.display !== 'none') loadData(); }, 60000);
+</script>
+</body>
+</html>
